@@ -1,10 +1,15 @@
 package com.wp.weixin.handler;
 
+import java.util.Date;
 import java.util.Map;
 
 import com.wp.weixin.builder.TextBuilder;
+import com.wp.weixin.entity.WechatMsg;
+import com.wp.weixin.service.WechatMsgService;
 import com.wp.weixin.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import me.chanjar.weixin.common.api.WxConsts;
@@ -21,6 +26,8 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
  */
 @Component
 public class MsgHandler extends AbstractHandler {
+    @Autowired
+    WechatMsgService wechatMsgService;
 
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage,
@@ -29,6 +36,10 @@ public class MsgHandler extends AbstractHandler {
 
         if (!wxMessage.getMsgType().equals(WxConsts.XML_MSG_EVENT)) {
             //TODO 可以选择将消息保存到本地
+            WechatMsg wechatMsg = new WechatMsg();
+            BeanUtils.copyProperties(wxMessage, wechatMsg);
+            wechatMsg.setCreateTime(new Date(wxMessage.getCreateTime()));
+            wechatMsgService.save(wechatMsg);
         }
 
         //当用户输入关键词如“你好”，“客服”等，并且有客服在线时，把消息转发给在线客服
